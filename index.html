@@ -3,25 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Special Gift</title>
-    <link rel="stylesheet" href="style.css">
+    <title>С днем рождения!❤️</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --neon-pink: #ff007f;
+            --matrix-glow: rgba(255, 0, 127, 0.8);
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100%; height: 100%;
+        }
+
+        canvas { display: block; }
+
+        /* Матричный текст */
+        #text-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 8vw;
+            font-weight: 900;
+            text-align: center;
+            letter-spacing: 10px;
+            text-shadow: 0 0 10px var(--neon-pink), 0 0 40px var(--neon-pink);
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* Звездный фон */
+        #galaxy-screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            display: none;
+            opacity: 0;
+            perspective: 1000px;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        /* Фото-карточки */
+        .photo-frame {
+            position: absolute;
+            width: 120px;
+            height: 160px;
+            background: #fff;
+            padding: 8px 8px 24px 8px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            border-radius: 2px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+        }
+
+        .photo-frame img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        /* Музыкальный контроллер */
+        #music-btn {
+            position: fixed;
+            bottom: 20px; right: 20px;
+            z-index: 100;
+            color: #fff; border: 1px solid #fff;
+            padding: 10px; cursor: pointer;
+            background: transparent;
+            opacity: 0.5; transition: 0.3s;
+        }
+        #music-btn:hover { opacity: 1; }
+    </style>
 </head>
 <body>
 
-    <div id="matrix-screen">
-        <canvas id="matrixCanvas"></canvas>
-        <div id="overlay-text"></div>
-    </div>
-
-    <div id="gift-screen">
-        <div id="photo-heart-container"></div>
-    </div>
-
-    <audio id="bgMusic" loop>
+    <button id="music-btn">ВКЛЮЧИТЬ МУЗЫКУ</button>
+    <audio id="bg-music" loop>
         <source src="music.mp3" type="audio/mpeg">
     </audio>
 
-    <script src="script.js"></script>
+    <div id="canvas-container">
+        <canvas id="matrix-canvas"></canvas>
+        <div id="text-overlay"></div>
+    </div>
+
+    <div id="galaxy-screen">
+        </div>
+
+    <script>
+        const config = {
+            photosCount: 20,
+            messages: ["3", "2", "1", "C ДНЕМ", "РОЖДЕНИЯ", "ВЕРА"],
+            colors: {
+                matrix: "#ff007f",
+                text: "#ffffff"
+            }
+        };
+
+        // --- MATRIX ENGINE ---
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const columns = Math.floor(width / 20);
+        const drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = config.colors.matrix;
+            ctx.font = '15px monospace';
+
+            drops.forEach((y, i) => {
+                const text = Math.random() > 0.5 ? "0" : "1";
+                ctx.fillText(text, i * 20, y * 20);
+                if (y * 20 > height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+
+        let matrixInterval = setInterval(drawMatrix, 40);
+
+        // --- SEQUENCE CONTROL ---
+        const overlay = document.getElementById('text-overlay');
+        const musicBtn = document.getElementById('music-btn');
+        const audio = document.getElementById('bg-music');
+
+        musicBtn.onclick = () => {
+            audio.play();
+            musicBtn.style.display = 'none';
+            startSequence();
+        };
+
+        function startSequence() {
+            let tl = gsap.timeline();
+
+            config.messages.forEach((msg, i) => {
+                tl.to(overlay, {
+                    onStart: () => { overlay.innerText = msg; },
+                    opacity: 1, scale: 1.2, duration: 0.3, ease: "back.out(2)"
+                })
+                .to(overlay, { opacity: 0, scale: 2, duration: 0.3, delay: 0.8 });
+            });
+
+            tl.to("#canvas-container", { 
+                scale: 5, opacity: 0, duration: 1, ease: "power4.in",
+                onComplete: startGalaxy 
+            });
+        }
+
+        // --- GALAXY & HEART ENGINE ---
+        function startGalaxy() {
+            clearInterval(matrixInterval);
+            document.getElementById('canvas-container').style.display = 'none';
+            const galaxy = document.getElementById('galaxy-screen');
+            galaxy.style.display = 'block';
+            gsap.to(galaxy, { opacity: 1, duration: 2 });
+
+            // Генерация звезд
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 3 + 'px';
+                Object.assign(star.style, {
+                    width: size, height: size,
+                    left: Math.random() * 100 + '%',
+                    top: Math.random() * 100 + '%',
+                });
+                galaxy.appendChild(star);
+                gsap.to(star, {
+                    opacity: Math.random(),
+                    repeat: -1, yoyo: true, duration: Math.random() * 2 + 1
+                });
+            }
+
+            // Создание сердца из фото
+            for (let i = 1; i <= config.photosCount; i++) {
+                const frame = document.createElement('div');
+                frame.className = 'photo-frame';
+                frame.innerHTML = `<img src="photos/${i}.jpg" onerror="this.src='https://via.placeholder.com/120x160?text=Photo+${i}'">`;
+                galaxy.appendChild(frame);
+
+                // Математика сердца
+                const t = (i / config.photosCount) * 2 * Math.PI;
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+
+                gsap.to(frame, {
+                    x: x * 18, // Масштаб сердца
+                    y: y * 18,
+                    rotationZ: Math.random() * 20 - 10,
+                    rotationY: Math.random() * 30 - 15,
+                    opacity: 1,
+                    scale: 1,
+                    duration: 2,
+                    delay: 2 + (i * 0.15),
+                    ease: "elastic.out(1, 0.5)"
+                });
+            }
+        }
+
+        window.onresize = () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        };
+    </script>
 </body>
 </html>
