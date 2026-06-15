@@ -1,7 +1,7 @@
 // --- НАСТРОЙКИ ---
 const config = {
     photosCount: 20,         // Количество фото в папке photos
-    photoFormat: ".jpg",     // Формат твоих фото
+    photoFormat: ".png",     // Формат твоих фото
     messages: ["3", "2", "1", "C", "ДНЕМ", "РОЖДЕНИЯ", "ТЕКСТ"],
     matrixColor: "#ff007f",
     particleColor: "#ff0044", // Цвет интерактивных частиц
